@@ -45,9 +45,12 @@ fun ReplyNavigationRail(
     ) {
         Layout( // Layout is the main core component for layout.
             modifier = Modifier.widthIn(max = 80.dp),
-            content = {
+            content = { // contentに並べたcomponentのサイズがmeasurePolicyのmeasurablesで取得できる
+                // measurablesは配列でcontentに記述したcomponent順に情報が設定される
+                // measurePolicyのlayout()関数で配置する。modifier.layoutId()で指定したIDが
+                // measurePolicyのmeasurables.layoutIdで取得できる
                 Column( // 縦に並べる
-                    modifier = Modifier.layoutId(LayoutType.HEADER),
+                    modifier = Modifier.layoutId(LayoutType.HEADER), // measurePolicyで参照
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -77,7 +80,7 @@ fun ReplyNavigationRail(
                     Spacer(modifier = Modifier.height(4.dp))
                 }
                 Column( // 縦に並べる
-                    modifier = Modifier.layoutId(LayoutType.CONTENT),
+                    modifier = Modifier.layoutId(LayoutType.CONTENT), // measurePolicyで参照
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -99,6 +102,8 @@ fun ReplyNavigationRail(
             measurePolicy = {measurables, constraints ->
                 lateinit var headerMeasurable: Measurable
                 lateinit var contentMeasurable: Measurable
+                // contentで ヘッダのColumnとボディのColumnにだけlayoutIdを設定している
+                // ヘッダとボディでComponentの並びの配置を調整したい為にlayout()を使っている
                 measurables.forEach {
                     when (it.layoutId) {
                         LayoutType.HEADER -> headerMeasurable = it
@@ -108,6 +113,7 @@ fun ReplyNavigationRail(
                 }
                 val headerPlaceble = headerMeasurable.measure(constraints)
                 val contentPlaceble = contentMeasurable.measure( // ヘッダー分の高さ調整
+                    // ボディの縦のオフセットをヘッダの高さ分、上に位置させている
                     constraints.offset(vertical = -headerPlaceble.height)
                 )
                 layout(constraints.maxWidth, constraints.maxHeight) {
@@ -118,6 +124,7 @@ fun ReplyNavigationRail(
                         ReplyNavigationContentPosition.CENTER -> nonContentVerticalScope / 2
                     }.coerceAtLeast(headerPlaceble.height) // when()で返す値が最低、ヘッダーの高さに変更する
 
+                    // ボディのY位置をヘッダの高さ分調整するが、CENTER配置の時はY位置の中央に置く
                     contentPlaceble.placeRelative(0, contentPlaceableY)
                 }
             }
